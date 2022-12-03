@@ -4,5 +4,5 @@ import { getEntryFile } from "./getEntryFile.ts";
 export function getInput() {
   const entry = getEntryFile();
   const dirname = path.dirname(entry);
-  return Deno.readTextFileSync(path.resolve(dirname, "./data.txt"));
+  return Deno.readTextFileSync(path.resolve(dirname, "./data.txt")).trim();
 }
