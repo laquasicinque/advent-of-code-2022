@@ -6,10 +6,10 @@ import { pipe } from "../_utils/pipe.ts";
 import { sum } from "../_utils/sum.ts";
 
 type Range = [number, number];
-type RangePair = [Range, Range];
+type RangeTuple = [Range, Range];
 
 const getRanges = (str: string) =>
-  str.split(",").map((x) => x.split("-").map((x) => Number(x))) as RangePair;
+  str.split(",").map((x) => x.split("-").map((x) => Number(x))) as RangeTuple;
 
 const input = [...apply(getInput(), [lines, map(getRanges)])];
 
@@ -24,7 +24,7 @@ const rangesOverlap = (r1: Range, r2: Range) =>
 
 const p1 = pipe([
   map(
-    ([r1, r2]: RangePair) =>
+    ([r1, r2]: RangeTuple) =>
       rangeContainsRange(r1, r2) || rangeContainsRange(r2, r1)
   ),
   // Technically shouldn't be allowed to sum here as they're all booleans but coercion
@@ -33,7 +33,7 @@ const p1 = pipe([
 ]);
 
 const p2 = pipe([
-  map(([r1, r2]: [Range, Range]) => rangesOverlap(r1, r2)),
+  map(([r1, r2]: RangeTuple) => rangesOverlap(r1, r2)),
   sum,
 ]);
 
