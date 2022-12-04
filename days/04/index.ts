@@ -22,9 +22,9 @@ const pointInRange = (point: number, range: Range) =>
 const rangesOverlap = (r1: Range, r2: Range) =>
   r1.some((p) => pointInRange(p, r2)) || r2.some((p) => pointInRange(p, r1));
 
-const p1 = pipe([
+const p1 = pipe<RangeTuple[], number>([
   map(
-    ([r1, r2]: RangeTuple) =>
+    ([r1, r2]) =>
       rangeContainsRange(r1, r2) || rangeContainsRange(r2, r1)
   ),
   // Technically shouldn't be allowed to sum here as they're all booleans but coercion
@@ -32,8 +32,8 @@ const p1 = pipe([
   sum,
 ]);
 
-const p2 = pipe([
-  map(([r1, r2]: RangeTuple) => rangesOverlap(r1, r2)),
+const p2 = pipe<RangeTuple[], number>([
+  map(([r1, r2]) => rangesOverlap(r1, r2)),
   sum,
 ]);
 
