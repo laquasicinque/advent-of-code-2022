@@ -1,6 +1,6 @@
 import { count } from "../_utils/count.ts";
 import { getInput } from "../_utils/getInput.ts";
-import { windows } from "../_utils/itWindow.ts";
+import { windows } from "../_utils/windows.ts";
 import { pipe } from "../_utils/pipe.ts";
 import { takeWhile } from "../_utils/takeWhile.ts";
 
