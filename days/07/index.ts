@@ -23,64 +23,67 @@ type Directory = {
 };
 
 const input = getInput();
-const root = createDir("/");
-let cwd = root;
-
-const f = pipe(lines, groups((x: string) => x.startsWith("$")));
-
-for (const [cmdLine, ...output] of f(input)) {
-  const [, cmd, ...args] = cmdLine.split(" ");
-  if (cmd === "cd") {
-    const path = args[0];
-    cwd =
-      path === "/"
-        ? root
-        : path === ".."
-        ? (cwd.parent as Directory)
-        : (cwd.children.get(path) as Directory);
-  } else if (cmd === "ls") {
-    for (const li of output) {
-      const [sizeStr, name] = li.split(" ");
-      if (!cwd.children.has(name))
-        cwd.children.set(
-          name,
-          sizeStr === "dir"
-            ? createDir(name, cwd)
-            : createFile(name, Number(sizeStr), cwd)
-        );
-    }
-  }
-}
+const cmdGroups = pipe(
+  lines,
+  groups((x: string) => x.startsWith("$"))
+);
+const root = createTree(createDir("/"), input);
 
 const p1 = pipe(
   dirFlatten,
   filter((item) => item.type === "DIR" && item.size <= 1e5),
   map((dir) => dir.size),
-  sum,
+  sum
 );
 
 const p2 = (dir: Directory) => {
   const freeSpace = 7e7 - dir.size;
   const requiredSpace = 3e7 - freeSpace;
-  return apply(dir,
+  return apply(
+    dir,
     dirFlatten,
-    filter((item) =>item.type === "DIR" && item.size >= requiredSpace),
+    filter((item) => item.type === "DIR" && item.size >= requiredSpace),
     map((dir) => dir.size),
     min
-  )
+  );
 };
 
 console.log("Sum of all folders with size greater than 100,000: ", p1(root));
 console.log("Size of Smallest folder to delete for update:", p2(root));
 
+function createTree(root: Directory, input: string) {
+  let cwd = root;
+  for (const [cmdLine, ...output] of cmdGroups(input)) {
+    const [, cmd, ...args] = cmdLine.split(" ");
+    if (cmd === "cd") {
+      const path = args[0];
+      cwd =
+        path === "/"
+          ? root
+          : path === ".."
+          ? (cwd.parent as Directory)
+          : (cwd.children.get(path) as Directory);
+    } else if (cmd === "ls") {
+      for (const lsLine of output) {
+        const [sizeStr, name] = lsLine.split(" ");
+        if (!cwd.children.has(name))
+          cwd.children.set(
+            name,
+            sizeStr === "dir"
+              ? createDir(name, cwd)
+              : createFile(name, Number(sizeStr), cwd)
+          );
+      }
+    }
+  }
+  return root;
+}
+
 function* dirFlatten(dir: Directory): Iterable<Directory | File> {
   yield dir;
   for (const item of dir.children.values()) {
-    if (item.type === "DIR") {
-      yield* dirFlatten(item);
-    } else {
-      yield item;
-    }
+    if (item.type === "DIR") yield* dirFlatten(item);
+    else yield item;
   }
 }
 
