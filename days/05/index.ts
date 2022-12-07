@@ -12,18 +12,18 @@ const stackReggie = /(?:\[(?<val>\w)\])(?: |$)/g;
 const stepsReggie = /move (\d+) from (\d+) to (\d+)$/gm;
 const last = <T>(x: T[]): T | undefined => x.at(-1);
 
-const p1 = pipe([
+const p1 = pipe(
   getStartingStacks,
   (stacks: string[][]) => shuffleStacks(stacks, steps),
   map(last),
   join(""),
-]);
-const p2 = pipe([
+);
+const p2 = pipe(
   getStartingStacks,
   (stacks: string[][]) => shuffleStacks(stacks, steps, true),
   map(last),
   join(""),
-]);
+);
 
 console.log("Moving Box by Box: ", p1(startingPos));
 console.log("Moving in Bulk", p2(startingPos));
@@ -48,10 +48,10 @@ function getStartingStacks(rawStartStr: string) {
   for (const {
     index,
     groups: { val },
-  } of apply(rawStartStr, [
+  } of apply(rawStartStr,
     lines,
     flatMap((x: string) => x.matchAll(stackReggie)),
-  ])) {
+  )) {
     stacks[(index ?? 0) / 4].push(val);
   }
   // We're moving items frequently from the top of the stack so we should

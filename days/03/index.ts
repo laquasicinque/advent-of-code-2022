@@ -22,21 +22,21 @@ const intersection = <T>(a: Iterable<T>, b: Iterable<T>) => {
 };
 
 
-const p1 = pipe([
+const p1 = pipe(
   lines,
-  map((x: string) => [x.slice(0, x.length / 2), x.slice(x.length / 2)]),
-  map(([a, b]: [string, string]) => intersection(a, b)),
-  map(([x]: Set<string>) => getPriority(x)),
+  map((x) => [x.slice(0, x.length / 2), x.slice(x.length / 2)]),
+  map(([a, b]) => intersection(a, b)),
+  map(([x]) => getPriority(x)),
   sum,
-]);
+);
 
-const p2 = pipe([
+const p2 = pipe(
   lines,
   chunk(3),
-  map(([a, b, c]: string[][]) => intersection(a, intersection(b, c))),
-  map(([x]: Set<string>) => getPriority(x)),
+  map(([a, b, c]) => intersection(a, intersection(b, c))),
+  map(([x]) => getPriority(x)),
   sum,
-]);
+);
 
 console.log("Sum of Priorities in Bags:", p1(input));
 console.log("Sum of priorities of badges:", p2(input))

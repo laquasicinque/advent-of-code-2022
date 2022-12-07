@@ -7,12 +7,12 @@ import { takeWhile } from "../_utils/takeWhile.ts";
 const input = getInput();
 const add = (a:number) => (b:number) => a + b
 
-const findSignalMarkerFactory = (markerSize:number) =>  pipe([
+const findSignalMarkerFactory = (markerSize:number) =>  pipe(
   windows(markerSize),
-  takeWhile((x:string[]) => new Set(x).size < markerSize),
+  takeWhile((x) => new Set(x).size < markerSize),
   count,
   add(markerSize)
-])
+)
 
 const p1 = findSignalMarkerFactory(4)
 const p2 = findSignalMarkerFactory(14)
