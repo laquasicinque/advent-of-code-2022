@@ -6,7 +6,7 @@ export const _flatMap = <T, U>(
   iter: Iterable<T>,
   fn: (item: T, index: number, iter: Iterable<T>) => U | Iterable<U>
 ): Iterable<U> => {
-  return apply(iter, [map(fn), flat(1)]) as Iterable<U>;
+  return apply(iter, map(fn), flat(1)) as Iterable<U>;
 };
 
 export const flatMap =

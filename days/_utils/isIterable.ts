@@ -4,7 +4,6 @@ export function isIterable(
   item: any,
   includeStrings = false): item is Iterable<unknown> {
   return (
-    Symbol.iterator in item &&
     typeof item[Symbol.iterator] === "function" &&
     !(includeStrings && typeof item === "string")
   );
