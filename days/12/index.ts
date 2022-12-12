@@ -6,13 +6,20 @@ import { map } from "../_utils/map.ts";
 import { filter } from "../_utils/filter.ts";
 import { pipe } from "../_utils/pipe.ts";
 
+const REPLACEMENT_MAP = { S: "a", E: "z" };
 const input = getInput();
 
+const mapCoords = map((x: string) => x.split(",").map(Number));
 const grid = pipe(lines, map(collect), collect)(input);
-const getValidSteps = (grid: string[][], x: number, y: number, isTraversable: (a:string,b:string) => boolean) => {
+const getValidSteps = (
+  grid: string[][],
+  x: number,
+  y: number,
+  isTraversable: (a: string, b: string) => boolean
+) => {
   return apply(
     getCardinals(x, y),
-    filter(([x, y]: [number, number]) => grid[y]?.[x] != null),
+    filter(([x, y]) => grid[y]?.[x] != null),
     filter(([u, v]) => isTraversable(grid[y][x], grid[v][u])),
     collect
   );
@@ -20,7 +27,7 @@ const getValidSteps = (grid: string[][], x: number, y: number, isTraversable: (a
 
 const p1 = (grid: string[][]) => shortestPath(grid, "S", "E", isTraversable);
 const p2 = (grid: string[][]) =>
-  shortestPath(grid, "E", "a", (a,b) => isTraversable(b,a));
+  shortestPath(grid, "E", "a", (a, b) => isTraversable(b, a));
 
 console.log("Shortest path from S to E", p1(grid));
 console.log("Shortest path from any a to E", p2(grid));
@@ -31,38 +38,34 @@ function shortestPath(
   dest: string,
   traverseLogic: (a: string, b: string) => boolean
 ) {
-  const seen = new Map<string, [number, number[][]]>([
-    [getCoord(grid, start).join(","), [0, []]],
+  const coordMap = new Map<string, number>([
+    [getCoord(grid, start).join(","), 0],
   ]);
-  for (const [x, y] of map((x: string) => x.split(",").map(Number))(
-    seen.keys()
-  )) {
-    const [stepNum, path] = seen.get([x, y].join(","))!;
+  for (const coordStr of mapCoords(coordMap.keys())) {
+    const [x,y] =coordStr
+    const stepNum = coordMap.get(coordStr.join(','))!;
     if (grid[y][x] === dest) {
       return stepNum;
     }
-    for (const step of getValidSteps(grid, x, y,traverseLogic)) {
+    for (const step of getValidSteps(grid, x, y, traverseLogic)) {
       const key = step.join(",");
-      if (!seen.has(key)) {
-        seen.set(key, [stepNum + 1, [...path, [x, y]]]);
-      }
+      if (!coordMap.has(key)) coordMap.set(key, stepNum + 1);
     }
   }
 }
 
 function getCardinals(x: number, y: number): [number, number][] {
   return [
-    [+x, y - 1], // up
-    [+x + 1, +y], // right
-    [+x, +y + 1], // down
-    [x - 1, +y], //left
+    [x, y - 1], // up
+    [x + 1, y], // right
+    [x, y + 1], // down
+    [x - 1, y], //left
   ];
 }
 
 function isTraversable(start: string, end: string) {
-  const m = { S: "a", E: "z" };
-  const s = m[start as keyof typeof m] ?? start;
-  const e = m[end as keyof typeof m] ?? end;
+  const s = REPLACEMENT_MAP[start as keyof typeof REPLACEMENT_MAP] ?? start;
+  const e = REPLACEMENT_MAP[end as keyof typeof REPLACEMENT_MAP] ?? end;
   return e.codePointAt(0)! - s.codePointAt(0)! <= 1;
 }
 
