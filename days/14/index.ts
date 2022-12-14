@@ -6,25 +6,26 @@ import { range } from "../_utils/range.ts";
 import { flatMap } from "../_utils/flatMap.ts";
 import { take } from "../_utils/take.ts";
 import { takeWhile } from "../_utils/takeWhile.ts";
-// import { join } from "../_utils/join.ts";
+import { join } from "../_utils/join.ts";
 import { windows } from "../_utils/windows.ts";
 import { zip } from "../_utils/zip.ts";
 import Tuple, { TupleOf } from "../_utils/Tuple.ts";
 import { cycle } from "../_utils/cycle.ts";
 import { pipe } from "../_utils/pipe.ts";
 import { last } from "../_utils/last.ts";
+import { tap } from "../_utils/tap.ts";
 type Coord = TupleOf<number, number>;
 
-const wallCoords: Coord[][] = apply(
+const wallPoints: Coord[][] = apply(
   getInputLines(),
-  map((x) =>
-    x
+  map((line) =>
+    line
       .split(" -> ")
       .map((x) => Tuple(...(x.split(",").map(Number) as [number, number])))
   ),
   collect
 );
-const points = pipe(
+const wallSegments = pipe(
   flatMap(windows(2))<Coord>,
   flatMap(([[startX, startY], [stopX, stopY]]) =>
     apply(
@@ -36,29 +37,29 @@ const points = pipe(
 );
 const loopedRange = (a: number, b: number) => cycle(range(a, b));
 
-// const printGrid = (obj: Map<Coord, string>) => {
-//   const xs: number[] = [];
-//   const ys: number[] = [];
-//   for (const key of obj.keys()) {
-//     const [x, y] = key
-//     xs.push(x);
-//     ys.push(y);
-//   }
-//   for (const y of range(Math.min(...ys, 0), Math.max(...ys))) {
-//     console.log(
-//       apply(
-//         range(Math.min(...xs), Math.max(...xs)),
-//         map((x) => obj.get(Tuple(x,y)) ?? "."),
-//         join("")
-//       )
-//     );
-//   }
-// };
+const printGrid = (obj: Map<Coord, string>) => {
+  const xs: number[] = [];
+  const ys: number[] = [];
+  for (const key of obj.keys()) {
+    const [x, y] = key;
+    xs.push(x);
+    ys.push(y);
+  }
+  for (const y of range(Math.min(...ys, 0), Math.max(...ys))) {
+    console.log(
+      apply(
+        range(Math.min(...xs), Math.max(...xs)),
+        map((x) => obj.get(Tuple(x, y)) ?? "."),
+        join("")
+      )
+    );
+  }
+};
 
-const createWallsObj = (wallCoords: Coord[][]) => {
+const createWallsObj = (wallPoints: Coord[][]) => {
   let maxY = -Infinity;
   const objMap = new Map<Coord, string>();
-  for (const tuple of points(wallCoords)) {
+  for (const tuple of wallSegments(wallPoints)) {
     maxY = Math.max(tuple[1], maxY);
     objMap.set(tuple, "#");
   }
@@ -71,10 +72,12 @@ const p1 = (wallCoords: Coord[][]) => {
   while (true) {
     const tuple = apply(
       dropSand(objMap),
-      takeWhile(([_, y]) => y <= maxY ),
+      // uncomment to see each "frame"
+      // tap((tuple) => printGrid(new Map([...objMap, [tuple,'o']]))),
+      takeWhile(([_, y]) => y <= maxY),
       last
     )!;
-    if(tuple[1] > maxY-1) break
+    if (tuple[1] > maxY - 1) break;
     objMap.set(tuple, "o");
   }
   return objMap.size - start;
@@ -86,6 +89,8 @@ const p2 = (wallCoords: Coord[][]) => {
   while (objMap.get(Tuple(500, 0)) !== "o") {
     const tuple = apply(
       dropSand(objMap),
+      // uncomment to see each "frame"
+      // tap((tuple) => printGrid(new Map([...objMap, [tuple,'o']]))),
       takeWhile(([_, y]) => y <= maxY + 1),
       last
     )!;
@@ -93,17 +98,21 @@ const p2 = (wallCoords: Coord[][]) => {
   }
   return objMap.size - start;
 };
-console.log(p1(wallCoords));
-console.log(p2(wallCoords));
+console.log(p1(wallPoints));
+console.log(p2(wallPoints));
 
 function* dropSand(objMap: Map<Coord, string>) {
   let x = 500;
   let y = 0;
   while (true) {
     if (!objMap.get(Tuple(x, y + 1))) y++;
-    else if (!objMap.get(Tuple(x - 1, y + 1))) x--;
-    else if (!objMap.get(Tuple(x + 1, y + 1))) x++;
-    else {
+    else if (!objMap.get(Tuple(x - 1, y + 1))) {
+      x--;
+      y++;
+    } else if (!objMap.get(Tuple(x + 1, y + 1))) {
+      x++;
+      y++;
+    } else {
       yield Tuple(x, y);
       return;
     }
