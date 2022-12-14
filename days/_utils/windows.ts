@@ -15,3 +15,5 @@ export const windows =
   (size: number) =>
   <T>(iter: Iterable<T>) =>
     _windows(iter, size);
+
+windows._ = _windows

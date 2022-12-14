@@ -1,30 +1,45 @@
 // import * as path from "https://deno.land/std@0.167.0/path/mod.ts";
 import { config } from "https://deno.land/x/dotenv/mod.ts";
-import {exists} from "https://deno.land/std/fs/mod.ts"
-
-import { DOMParser,Element } from "https://deno.land/x/deno_dom/deno-dom-wasm.ts";
-const day = String(Deno.args[0] ?? new Date().getDate())
+import {
+  DOMParser,
+  Element,
+} from "https://deno.land/x/deno_dom/deno-dom-wasm.ts";
+const day = String(Deno.args[0] ?? new Date().getDate());
 
 const env = config();
-console.log(`Importing day ${day}.`)
-const [instructions,input] = await Promise.all([getInstructions(),getInput()])
+console.log(`Importing day ${day}.`);
+const [instructions, input] = await Promise.all([
+  getInstructions(),
+  getInput(),
+]);
 
 try {
-  await Deno.mkdir(`days/${day.padStart(2,'0')}/`, {recursive: true})
-} catch (e){
-  console.log(e)
+  await Deno.mkdir(`days/${day.padStart(2, "0")}/`, { recursive: true });
+} catch (e) {
+  console.log(e);
 }
 
-const encoder = new TextEncoder()
+const encoder = new TextEncoder();
 
-await Deno.writeFile(`days/${day.padStart(2,'0')}/data.txt`, encoder.encode(input))
-await Deno.writeFile(`days/${day.padStart(2,'0')}/README.md`,encoder.encode(instructions))
-if(!await exists(`days/${day.padStart(2,'0')}/index.ts`)) {
-  await Deno.writeFile(`days/${day.padStart(2,'0')}/index.ts`,encoder.encode(`import { getInput } from '../_utils/getInput.ts';
-const input = getInput()
-`))
-}
-console.log(`Files written`)
+await Deno.writeFile(
+  `days/${day.padStart(2, "0")}/data.txt`,
+  encoder.encode(input)
+);
+await Deno.writeFile(
+  `days/${day.padStart(2, "0")}/README.md`,
+  encoder.encode(instructions)
+);
+try {
+  const file = await Deno.open(`days/${day.padStart(2, "0")}/index.ts`);
+  file.write(
+    encoder.encode(`import { getInput } from '../_utils/getInput.ts';
+  const input = getInput()
+  `)
+  );
+  file.close();
+} catch {}
+
+console.log(`Files written`);
 
 async function getInput() {
   const page = await fetch(`https://adventofcode.com/2022/day/${day}/input`, {
@@ -33,7 +48,7 @@ async function getInput() {
     },
   });
 
-  return page.text()
+  return page.text();
 }
 
 async function getInstructions() {
@@ -46,8 +61,8 @@ async function getInstructions() {
   const data = await page.text();
   const doc = new DOMParser().parseFromString(data, "text/html");
   const nodes = [];
-  for(const node of doc?.querySelectorAll("article > *") || []) {
-    switch((node as Element).tagName) {
+  for (const node of doc?.querySelectorAll("article > *") || []) {
+    switch ((node as Element).tagName) {
       case "H2":
         nodes.push(`# ${node.textContent}`);
         break;
@@ -55,7 +70,11 @@ async function getInstructions() {
         nodes.push(`\`\`\`\n${node.textContent}\n\`\`\``);
         break;
       case "UL":
-        nodes.push([...(node as Element).children].map(x => `- ${x.textContent}`).join('\n'))
+        nodes.push(
+          [...(node as Element).children]
+            .map((x) => `- ${x.textContent}`)
+            .join("\n")
+        );
         break;
       case "P":
         {
@@ -66,8 +85,8 @@ async function getInstructions() {
               el.tagName === "CODE"
                 ? `\`${el.textContent}\``
                 : el.tagName === "EM"
-                  ? `*${item.textContent}*`
-                  : el
+                ? `*${item.textContent}*`
+                : el
             );
           });
           nodes.push(cp.textContent);
@@ -77,5 +96,5 @@ async function getInstructions() {
         console.log((node as Element).tagName, "Not supported");
     }
   }
-  return nodes.join('\n\n');
+  return nodes.join("\n\n");
 }
