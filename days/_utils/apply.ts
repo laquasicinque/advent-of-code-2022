@@ -39,7 +39,11 @@ export function apply<T0, T1, T2, T3, T4, T5, T6, T7, T8>(
 export function apply<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(
   input: T0,
   ...fns: InOutWindow<[T0, T1, T2?, T3?, T4?, T5?, T6?, T7?, T8?, T9?]>
-): T9 {
+): T9
+export function apply<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9,T10>(
+  input: T0,
+  ...fns: InOutWindow<[T0, T1, T2?, T3?, T4?, T5?, T6?, T7?, T8?, T9?, T10?]>
+): T10 {
   // deno-lint-ignore no-explicit-any
-  return fns.reduce((acc, fn) => fn(acc as any) as any, input) as unknown as T9;
+  return fns.reduce((acc, fn) => fn(acc as any) as any, input) as unknown as T10;
 }

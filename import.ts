@@ -30,10 +30,13 @@ await Deno.writeFile(
   encoder.encode(instructions)
 );
 try {
-  const file = await Deno.open(`days/${day.padStart(2, "0")}/index.ts`);
+  const file = await Deno.open(`days/${day.padStart(2, "0")}/index.ts`, {
+    createNew: true,
+    write: true,
+  });
   file.write(
-    encoder.encode(`import { getInput } from '../_utils/getInput.ts';
-  const input = getInput()
+    encoder.encode(`import { getInput } from '../_utils/input.ts';
+const input = getInput()
   `)
   );
   file.close();
